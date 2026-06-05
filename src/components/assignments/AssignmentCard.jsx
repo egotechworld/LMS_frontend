@@ -1,115 +1,93 @@
-import StatusBadge from '../common/StatusBadge';
-import './Assignments.css';
+import { Clock, CheckCircle2, Upload } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import StatusBadge from '@/components/common/StatusBadge';
 
-/**
- * Single assignment row card.
- * Matches the screenshot layout:
- *   Title / course name   [status badge]
- *   due date · submitted date · score
- *   [Submit button if not submitted]
- *   [Instructor feedback block if graded]
- */
+const fmt = (iso) =>
+  iso
+    ? new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    : '—';
+
 const AssignmentCard = ({ assignment, onSubmit, onViewSubmissions }) => {
   const {
-    id,
-    title,
-    course_title,
-    due_date,
-    max_score,
-    submission_status,  // 'not_submitted' | 'submitted' | 'graded'
-    submitted_at,
-    is_late,
-    mark,
-    feedback,
+    title, course_title, due_date, max_score,
+    submission_status, submitted_at, is_late,
+    mark, feedback,
   } = assignment;
 
   const isGraded       = submission_status === 'graded';
   const isSubmitted    = submission_status === 'submitted' || isGraded;
   const isNotSubmitted = submission_status === 'not_submitted';
-  const isLate         = !!is_late;
-
-  const badgeStatus = isLate && !isGraded ? 'late' : submission_status;
-
-  const fmt = (iso) =>
-    iso
-      ? new Date(iso).toLocaleDateString('en-US', {
-          year: 'numeric', month: '2-digit', day: '2-digit',
-        })
-      : '—';
+  const badgeStatus    = is_late && !isGraded ? 'late' : submission_status;
 
   return (
-    <div className="asgn-card">
-      {/* ── Header row ─────────────────────────────────────── */}
-      <div className="asgn-card-header">
-        <div className="asgn-card-left">
-          <h3 className="asgn-card-title">{title}</h3>
-          <span className="asgn-card-course">{course_title}</span>
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-5">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="min-w-0">
+            <h3 className="font-semibold text-[15px] text-foreground leading-snug">{title}</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">{course_title}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <StatusBadge
+              status={badgeStatus}
+              label={is_late && !isGraded ? 'Late' : isGraded ? 'Graded' : isSubmitted ? 'Submitted' : 'Not Submitted'}
+            />
+            {isGraded && mark != null && (
+              <span className="text-xs font-semibold text-amber-500">⭐ {mark}/{max_score}</span>
+            )}
+          </div>
         </div>
-        <div className="asgn-card-badge">
-          <StatusBadge
-            status={badgeStatus}
-            label={
-              isLate && !isGraded
-                ? 'Late'
-                : isGraded
-                ? 'Graded'
-                : isSubmitted
-                ? 'Submitted'
-                : 'Not Submitted'
-            }
-          />
-          {isGraded && mark !== null && mark !== undefined && (
-            <span className="asgn-score">
-              ⭐ {mark}/{max_score}
+
+        {/* Meta */}
+        <div className="flex flex-wrap gap-4 my-2">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="w-3.5 h-3.5" />
+            Due: <strong className="text-foreground">{fmt(due_date)}</strong>
+          </span>
+          {submitted_at && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              Submitted: <strong className="text-foreground">{fmt(submitted_at)}</strong>
             </span>
           )}
         </div>
-      </div>
 
-      {/* ── Meta row ────────────────────────────────────────── */}
-      <div className="asgn-card-meta">
-        <span className="asgn-meta-item">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Due: <strong>{fmt(due_date)}</strong>
-        </span>
-        {submitted_at && (
-          <span className="asgn-meta-item">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
-            Submitted: <strong>{fmt(submitted_at)}</strong>
-          </span>
+        {/* Submit button */}
+        {isNotSubmitted && onSubmit && (
+          <div className="mt-3">
+            <Button size="sm" variant="dark" onClick={() => onSubmit(assignment)}>
+              <Upload className="w-3.5 h-3.5" />
+              Submit Assignment
+            </Button>
+          </div>
         )}
-      </div>
 
-      {/* ── Submit button ────────────────────────────────────── */}
-      {isNotSubmitted && onSubmit && (
-        <div className="asgn-card-actions">
-          <button className="btn-submit-asgn" onClick={() => onSubmit(assignment)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-            Submit Assignment
-          </button>
-        </div>
-      )}
+        {/* Instructor: view submissions */}
+        {onViewSubmissions && (
+          <div className="mt-3">
+            <Button size="sm" variant="outline" onClick={() => onViewSubmissions(assignment)}>
+              View Submissions
+            </Button>
+          </div>
+        )}
 
-      {/* ── View submissions button (instructor) ─────────────── */}
-      {onViewSubmissions && (
-        <div className="asgn-card-actions">
-          <button
-            className="btn-outline-small"
-            onClick={() => onViewSubmissions(assignment)}
-          >
-            View Submissions
-          </button>
-        </div>
-      )}
-
-      {/* ── Instructor feedback ──────────────────────────────── */}
-      {isGraded && feedback && (
-        <div className="asgn-feedback-block">
-          <p className="asgn-feedback-label">INSTRUCTOR FEEDBACK</p>
-          <p className="asgn-feedback-text">{feedback}</p>
-        </div>
-      )}
-    </div>
+        {/* Instructor feedback */}
+        {isGraded && feedback && (
+          <>
+            <Separator className="my-3" />
+            <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-md px-4 py-3">
+              <p className="text-[10px] font-bold tracking-widest text-blue-600 uppercase mb-1">
+                Instructor Feedback
+              </p>
+              <p className="text-sm text-slate-700 leading-relaxed">{feedback}</p>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

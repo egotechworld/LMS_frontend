@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
-import Modal from '../common/Modal';
-import StatusBadge from '../common/StatusBadge';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Table, TableHeader, TableBody,
+  TableRow, TableHead, TableCell,
+} from '@/components/ui/table';
+import StatusBadge        from '@/components/common/StatusBadge';
 import GradeSubmissionModal from './GradeSubmissionModal';
-import { assignmentService } from '../../services/assignmentService';
-import './Assignments.css';
+import { assignmentService } from '@/services/assignmentService';
 
-/**
- * Instructor modal — lists all student submissions for one assignment.
- * Allows grading inline by opening GradeSubmissionModal.
- */
 const SubmissionsListModal = ({ assignment, onClose }) => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading]         = useState(true);
-  const [grading, setGrading]         = useState(null); // submission to grade
+  const [grading, setGrading]         = useState(null);
 
-  useEffect(() => {
-    fetchSubmissions();
-  }, [assignment.id]);
+  useEffect(() => { fetchSubmissions(); }, [assignment.id]);
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -30,89 +30,75 @@ const SubmissionsListModal = ({ assignment, onClose }) => {
     }
   };
 
-  const handleGraded = () => {
-    setGrading(null);
-    fetchSubmissions();
-  };
-
   if (grading) {
     return (
       <GradeSubmissionModal
         submission={grading}
         maxScore={assignment.max_score}
         onClose={() => setGrading(null)}
-        onSuccess={handleGraded}
+        onSuccess={() => { setGrading(null); fetchSubmissions(); }}
       />
     );
   }
 
   return (
-    <Modal
-      title={`Submissions — ${assignment.title}`}
-      onClose={onClose}
-      size="lg"
-    >
-      {loading ? (
-        <p className="modal-loading">Loading submissions…</p>
-      ) : submissions.length === 0 ? (
-        <p className="modal-empty">No submissions yet.</p>
-      ) : (
-        <div className="submissions-table-wrap">
-          <table className="submissions-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Submitted</th>
-                <th>Status</th>
-                <th>Mark</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submissions.map((s) => {
-                const status = s.graded_at ? 'graded' : s.is_late ? 'late' : 'submitted';
-                return (
-                  <tr key={s.id}>
-                    <td>
-                      <div className="sub-student-name">
-                        {s.first_name} {s.last_name}
-                      </div>
-                      <div className="sub-student-email">{s.email}</div>
-                    </td>
-                    <td className="sub-date">
-                      {new Date(s.submitted_at).toLocaleDateString()}
-                    </td>
-                    <td>
-                      <StatusBadge
-                        status={status}
-                        label={
-                          s.graded_at ? 'Graded'
-                          : s.is_late ? 'Late'
-                          : 'Submitted'
-                        }
-                      />
-                    </td>
-                    <td className="sub-mark">
-                      {s.mark !== null && s.mark !== undefined
-                        ? `${s.mark} / ${assignment.max_score}`
-                        : '—'}
-                    </td>
-                    <td>
-                      <button
-                        className="btn-grade-inline"
-                        onClick={() => setGrading(s)}
-                      >
-                        {s.graded_at ? 'Re-grade' : 'Grade'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Modal>
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Submissions — {assignment.title}</DialogTitle>
+        </DialogHeader>
+
+        <DialogBody className="px-0 py-0">
+          {loading ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">Loading submissions…</p>
+          ) : submissions.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">No submissions yet.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Mark</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {submissions.map((s) => {
+                  const status = s.graded_at ? 'graded' : s.is_late ? 'late' : 'submitted';
+                  return (
+                    <TableRow key={s.id}>
+                      <TableCell>
+                        <p className="font-medium text-sm">{s.first_name} {s.last_name}</p>
+                        <p className="text-xs text-muted-foreground">{s.email}</p>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(s.submitted_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={status}
+                          label={s.graded_at ? 'Graded' : s.is_late ? 'Late' : 'Submitted'}
+                        />
+                      </TableCell>
+                      <TableCell className="font-semibold text-sm">
+                        {s.mark != null ? `${s.mark} / ${assignment.max_score}` : '—'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" variant="default" onClick={() => setGrading(s)}>
+                          {s.graded_at ? 'Re-grade' : 'Grade'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 };
 

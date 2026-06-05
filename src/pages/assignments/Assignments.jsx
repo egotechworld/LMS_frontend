@@ -1,72 +1,73 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useAuthStore } from '../../store/authStore';
-import { assignmentService } from '../../services/assignmentService';
-import { enrollmentService } from '../../services/enrollmentService';
-import StatCard from '../../components/common/StatCard';
-import AssignmentCard from '../../components/assignments/AssignmentCard';
-import SubmitAssignmentModal from '../../components/assignments/SubmitAssignmentModal';
-import SubmissionsListModal from '../../components/assignments/SubmissionsListModal';
-import CreateAssignmentModal from '../../components/assignments/CreateAssignmentModal';
-import './Assignments.css';
+import { Plus, BookOpen } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import { assignmentService } from '@/services/assignmentService';
+import { enrollmentService } from '@/services/enrollmentService';
+import { Button } from '@/components/ui/button';
+import {
+  Select, SelectTrigger, SelectValue,
+  SelectContent, SelectItem,
+} from '@/components/ui/select';
+import StatCard              from '@/components/common/StatCard';
+import AssignmentCard        from '@/components/assignments/AssignmentCard';
+import SubmitAssignmentModal from '@/components/assignments/SubmitAssignmentModal';
+import SubmissionsListModal  from '@/components/assignments/SubmissionsListModal';
+import CreateAssignmentModal from '@/components/assignments/CreateAssignmentModal';
+
+const FILTERS = [
+  { key: 'all',           label: 'All'       },
+  { key: 'not_submitted', label: 'Pending'   },
+  { key: 'submitted',     label: 'Submitted' },
+  { key: 'graded',        label: 'Graded'    },
+];
 
 const Assignments = () => {
   const { user } = useAuthStore();
   const isStudent    = user?.role === 'student';
   const isInstructor = user?.role === 'instructor' || user?.role === 'admin';
 
-  // ── State ──────────────────────────────────────────────────
-  const [assignments, setAssignments]   = useState([]);
-  const [enrollments, setEnrollments]   = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [activeFilter, setActiveFilter] = useState('all');
-
-  // Modal states
-  const [submitTarget, setSubmitTarget]   = useState(null); // assignment to submit
-  const [viewTarget, setViewTarget]       = useState(null); // assignment to view subs
-  const [createTarget, setCreateTarget]   = useState(null); // null=create, obj=edit
-  const [showCreate, setShowCreate]       = useState(false);
+  const [assignments,    setAssignments]   = useState([]);
+  const [enrollments,    setEnrollments]   = useState([]);
+  const [loading,        setLoading]       = useState(true);
+  const [activeFilter,   setActiveFilter]  = useState('all');
   const [selectedCourse, setSelectedCourse] = useState('');
 
-  // ── Data fetching ───────────────────────────────────────────
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [submitTarget, setSubmitTarget] = useState(null);
+  const [viewTarget,   setViewTarget]   = useState(null);
+  const [editTarget,   setEditTarget]   = useState(null);  // null=create, obj=edit
+  const [showCreate,   setShowCreate]   = useState(false);
+
+  // ── Fetch ────────────────────────────────────────────────
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      if (isStudent) {
-        // Students: fetch enrollments, then all assignments for each course
-        const enrRes  = await enrollmentService.getMyEnrollments();
-        const enrList = enrRes.data || [];
-        setEnrollments(enrList);
+      const enrRes  = await enrollmentService.getMyEnrollments();
+      const enrList = enrRes.data || [];
+      setEnrollments(enrList);
 
-        const allAssignments = [];
+      if (isStudent) {
+        const all = [];
         await Promise.all(
           enrList.map(async (enr) => {
             try {
               const res = await assignmentService.getAssignmentsByCourse(enr.course_id);
-              const withCourse = (res.data || []).map((a) => ({
-                ...a,
-                course_title: enr.title || a.course_title,
-              }));
-              allAssignments.push(...withCourse);
-            } catch { /* skip failed courses */ }
+              (res.data || []).forEach((a) =>
+                all.push({ ...a, course_title: enr.title || a.course_title })
+              );
+            } catch { /* skip */ }
           })
         );
 
-        // Fetch each student's own submission status
         const mySubsRes = await assignmentService.getMySubmissions();
-        const mySubs    = mySubsRes.data || [];
-        const subMap    = new Map(mySubs.map((s) => [s.assignment_id, s]));
+        const subMap    = new Map((mySubsRes.data || []).map((s) => [s.assignment_id, s]));
 
-        const enriched = allAssignments.map((a) => {
+        const enriched = all.map((a) => {
           const sub = subMap.get(a.id);
           return {
             ...a,
-            submission_status: sub
-              ? (sub.graded_at ? 'graded' : 'submitted')
-              : 'not_submitted',
+            submission_status: sub ? (sub.graded_at ? 'graded' : 'submitted') : 'not_submitted',
             submitted_at: sub?.submitted_at || null,
             is_late:      sub?.is_late      || 0,
             mark:         sub?.mark         ?? null,
@@ -74,7 +75,6 @@ const Assignments = () => {
           };
         });
 
-        // Sort: not submitted first → due date asc, then submitted/graded
         enriched.sort((a, b) => {
           if (a.submission_status === 'not_submitted' && b.submission_status !== 'not_submitted') return -1;
           if (a.submission_status !== 'not_submitted' && b.submission_status === 'not_submitted') return 1;
@@ -82,10 +82,6 @@ const Assignments = () => {
         });
 
         setAssignments(enriched);
-      } else {
-        // Instructor: fetch enrollments to get course list
-        const enrRes  = await enrollmentService.getMyEnrollments();
-        setEnrollments(enrRes.data || []);
       }
     } catch (err) {
       console.error('Failed to load assignments:', err);
@@ -94,8 +90,8 @@ const Assignments = () => {
     }
   };
 
-  // Instructor: fetch assignments for a selected course
   const fetchCourseAssignments = async (courseId) => {
+    if (!courseId) { setAssignments([]); return; }
     setLoading(true);
     try {
       const res = await assignmentService.getAssignmentsByCourse(courseId);
@@ -107,40 +103,28 @@ const Assignments = () => {
     }
   };
 
-  // ── Stats ───────────────────────────────────────────────────
-  const stats = useMemo(() => {
-    if (isStudent) {
-      return {
-        total:        assignments.length,
-        graded:       assignments.filter((a) => a.submission_status === 'graded').length,
-        submitted:    assignments.filter((a) => a.submission_status === 'submitted').length,
-        pending:      assignments.filter((a) => a.submission_status === 'not_submitted').length,
-      };
-    }
-    return {
-      total:      assignments.length,
-      graded:     assignments.filter((a) => (a.submission_count || 0) > 0).length,
-      submitted:  0,
-      pending:    0,
-    };
-  }, [assignments, isStudent]);
+  // ── Stats ────────────────────────────────────────────────
+  const stats = useMemo(() => ({
+    total:     assignments.length,
+    graded:    assignments.filter((a) => a.submission_status === 'graded').length,
+    submitted: assignments.filter((a) => a.submission_status === 'submitted').length,
+    pending:   assignments.filter((a) => a.submission_status === 'not_submitted').length,
+  }), [assignments]);
 
-  // ── Filtered list ───────────────────────────────────────────
-  const filtered = useMemo(() => {
-    if (activeFilter === 'all') return assignments;
-    return assignments.filter((a) => a.submission_status === activeFilter);
-  }, [assignments, activeFilter]);
+  const filtered = useMemo(() =>
+    activeFilter === 'all'
+      ? assignments
+      : assignments.filter((a) => a.submission_status === activeFilter),
+    [assignments, activeFilter]
+  );
 
-  // ── Handlers ────────────────────────────────────────────────
-  const handleSubmitSuccess = () => {
-    setSubmitTarget(null);
-    fetchData();
-  };
+  // ── Handlers ─────────────────────────────────────────────
+  const handleSubmitSuccess = () => { setSubmitTarget(null); fetchData(); };
 
   const handleCreateSuccess = () => {
     setShowCreate(false);
-    setCreateTarget(null);
-    if (selectedCourse) fetchCourseAssignments(selectedCourse);
+    setEditTarget(null);
+    fetchCourseAssignments(selectedCourse);
   };
 
   const handleDelete = async (id) => {
@@ -153,77 +137,81 @@ const Assignments = () => {
     }
   };
 
-  // ── Render ──────────────────────────────────────────────────
+  // ── Render ───────────────────────────────────────────────
   return (
-    <div className="asgn-page">
-      {/* Header */}
-      <div className="asgn-page-header">
+    <div className="p-8 max-w-4xl">
+      {/* Page header */}
+      <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
         <div>
-          <h1 className="asgn-page-title">Assignments</h1>
+          <h1 className="text-2xl font-bold text-foreground">Assignments</h1>
           {isStudent && (
-            <p className="asgn-page-sub">
+            <p className="text-sm text-muted-foreground mt-1">
               {assignments.length} assignment{assignments.length !== 1 ? 's' : ''} across your enrolled courses
             </p>
           )}
         </div>
 
+        {/* Instructor controls */}
         {isInstructor && (
-          <div className="asgn-instructor-controls">
-            <select
-              className="asgn-course-select"
+          <div className="flex items-center gap-3 flex-wrap">
+            <Select
               value={selectedCourse}
-              onChange={(e) => {
-                setSelectedCourse(e.target.value);
-                if (e.target.value) fetchCourseAssignments(e.target.value);
-                else setAssignments([]);
+              onValueChange={(v) => {
+                setSelectedCourse(v);
+                fetchCourseAssignments(v);
               }}
             >
-              <option value="">— Select a course —</option>
-              {enrollments.map((e) => (
-                <option key={e.course_id || e.id} value={e.course_id || e.id}>
-                  {e.title || e.course_title}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="Select a course" />
+              </SelectTrigger>
+              <SelectContent>
+                {enrollments.map((e) => (
+                  <SelectItem key={e.course_id || e.id} value={String(e.course_id || e.id)}>
+                    {e.title || e.course_title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {selectedCourse && (
-              <button
-                className="btn-create-asgn"
-                onClick={() => { setCreateTarget(null); setShowCreate(true); }}
+              <Button
+                variant="dark"
+                onClick={() => { setEditTarget(null); setShowCreate(true); }}
               >
-                + New Assignment
-              </button>
+                <Plus className="w-4 h-4" /> New Assignment
+              </Button>
             )}
           </div>
         )}
       </div>
 
       {/* Stat cards */}
-      <div className="asgn-stats-row">
-        <StatCard count={stats.total}    label="Total"     accent="#1a1a2e" active={activeFilter === 'all'}          />
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <StatCard count={stats.total}    label="Total"    accent="#1a1a2e" />
         {isStudent ? (
           <>
-            <StatCard count={stats.graded}    label="Graded"        accent="#1a7f4b" active={activeFilter === 'graded'}        />
-            <StatCard count={stats.submitted} label="Submitted"     accent="#1565c0" active={activeFilter === 'submitted'}     />
-            <StatCard count={stats.pending}   label="Pending"       accent="#b26a00" active={activeFilter === 'not_submitted'} />
+            <StatCard count={stats.graded}    label="Graded"        accent="#059669" active={activeFilter === 'graded'} />
+            <StatCard count={stats.submitted} label="Submitted"     accent="#2563eb" active={activeFilter === 'submitted'} />
+            <StatCard count={stats.pending}   label="Pending"       accent="#d97706" active={activeFilter === 'not_submitted'} />
           </>
         ) : (
-          <StatCard count={stats.graded} label="With Submissions" accent="#1a7f4b" />
+          <StatCard count={assignments.filter((a) => (a.submission_count || 0) > 0).length} label="With Submissions" accent="#059669" />
         )}
       </div>
 
-      {/* Filter tabs (student only) */}
+      {/* Filter tabs (student) */}
       {isStudent && (
-        <div className="asgn-filter-tabs">
-          {[
-            { key: 'all',           label: 'All'           },
-            { key: 'not_submitted', label: 'Pending'       },
-            { key: 'submitted',     label: 'Submitted'     },
-            { key: 'graded',        label: 'Graded'        },
-          ].map((f) => (
+        <div className="flex gap-1 border-b mb-5">
+          {FILTERS.map((f) => (
             <button
               key={f.key}
-              className={`asgn-filter-tab${activeFilter === f.key ? ' active' : ''}`}
               onClick={() => setActiveFilter(f.key)}
+              className={[
+                'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                activeFilter === f.key
+                  ? 'border-foreground text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
+              ].join(' ')}
             >
               {f.label}
             </button>
@@ -231,38 +219,44 @@ const Assignments = () => {
         </div>
       )}
 
-      {/* List */}
+      {/* Assignment list */}
       {loading ? (
-        <div className="asgn-loading">Loading assignments…</div>
+        <div className="py-20 text-center text-sm text-muted-foreground">Loading assignments…</div>
       ) : filtered.length === 0 ? (
-        <div className="asgn-empty">
-          {isInstructor && !selectedCourse
-            ? 'Select a course above to view its assignments.'
-            : 'No assignments found.'}
+        <div className="py-20 text-center">
+          <BookOpen className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
+          <p className="text-sm text-muted-foreground">
+            {isInstructor && !selectedCourse
+              ? 'Select a course above to view its assignments.'
+              : 'No assignments found.'}
+          </p>
         </div>
       ) : (
-        <div className="asgn-list">
+        <div className="flex flex-col gap-3">
           {filtered.map((asgn) => (
-            <div key={asgn.id} className="asgn-list-item">
+            <div key={asgn.id}>
               <AssignmentCard
                 assignment={asgn}
                 onSubmit={isStudent ? setSubmitTarget : null}
                 onViewSubmissions={isInstructor ? setViewTarget : null}
               />
+              {/* Instructor edit/delete row */}
               {isInstructor && (
-                <div className="asgn-instructor-row">
-                  <button
-                    className="btn-outline-xs"
-                    onClick={() => { setCreateTarget(asgn); setShowCreate(true); }}
+                <div className="flex gap-2 px-5 py-2 bg-muted/30 border border-t-0 rounded-b-xl border-border">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => { setEditTarget(asgn); setShowCreate(true); }}
                   >
                     Edit
-                  </button>
-                  <button
-                    className="btn-danger-xs"
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
                     onClick={() => handleDelete(asgn.id)}
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -270,7 +264,7 @@ const Assignments = () => {
         </div>
       )}
 
-      {/* ── Modals ── */}
+      {/* Modals */}
       {submitTarget && (
         <SubmitAssignmentModal
           assignment={submitTarget}
@@ -278,19 +272,17 @@ const Assignments = () => {
           onSuccess={handleSubmitSuccess}
         />
       )}
-
       {viewTarget && (
         <SubmissionsListModal
           assignment={viewTarget}
           onClose={() => setViewTarget(null)}
         />
       )}
-
       {showCreate && (
         <CreateAssignmentModal
-          assignment={createTarget}
+          assignment={editTarget}
           courseId={selectedCourse}
-          onClose={() => { setShowCreate(false); setCreateTarget(null); }}
+          onClose={() => { setShowCreate(false); setEditTarget(null); }}
           onSuccess={handleCreateSuccess}
         />
       )}

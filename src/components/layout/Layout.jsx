@@ -1,9 +1,7 @@
 import { Outlet, useLocation, NavLink } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import Sidebar from './Sidebar';
-import './Layout.css';
 
-/* Map path segments to readable breadcrumb labels */
 const LABELS = {
   dashboard:     'Dashboard',
   courses:       'Courses',
@@ -18,18 +16,25 @@ const Breadcrumbs = () => {
   const segments = pathname.split('/').filter(Boolean);
 
   return (
-    <nav className="breadcrumb">
-      <NavLink to="/dashboard" className="breadcrumb-link">
-        {LABELS['dashboard'] ?? 'Dashboard'}
+    <nav className="flex items-center gap-1 text-sm text-muted-foreground">
+      <NavLink to="/dashboard" className="hover:text-foreground transition-colors">
+        {LABELS['dashboard']}
       </NavLink>
       {segments.map((seg, i) => {
         if (i === 0 && seg === 'dashboard') return null;
         const label = LABELS[seg] ?? seg.charAt(0).toUpperCase() + seg.slice(1);
         const to    = '/' + segments.slice(0, i + 1).join('/');
         return (
-          <span key={to} className="breadcrumb-item">
-            <span className="breadcrumb-sep">›</span>
-            <NavLink to={to} className="breadcrumb-link">{label}</NavLink>
+          <span key={to} className="flex items-center gap-1">
+            <span className="text-border mx-1">›</span>
+            <NavLink
+              to={to}
+              className={({ isActive }) =>
+                isActive ? 'text-foreground font-medium' : 'hover:text-foreground transition-colors'
+              }
+            >
+              {label}
+            </NavLink>
           </span>
         );
       })}
@@ -41,16 +46,16 @@ const Layout = () => {
   const { isAuthenticated } = useAuthStore();
 
   return (
-    <div className="layout">
+    <div className="flex min-h-screen bg-background">
       {isAuthenticated && <Sidebar />}
 
-      <div className="layout-main">
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         {isAuthenticated && (
-          <header className="layout-topbar">
+          <header className="h-12 border-b bg-white flex items-center px-7 shrink-0">
             <Breadcrumbs />
           </header>
         )}
-        <main className="main-content">
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>

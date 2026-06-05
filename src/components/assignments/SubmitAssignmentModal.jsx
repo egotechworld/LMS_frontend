@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import Modal from '../common/Modal';
-import { assignmentService } from '../../services/assignmentService';
-import './Assignments.css';
+import { AlertTriangle, Paperclip, X } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody,
+} from '@/components/ui/dialog';
+import { Button }   from '@/components/ui/button';
+import { Label }    from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { assignmentService } from '@/services/assignmentService';
 
-/**
- * Modal for students to submit an assignment.
- * Supports file upload OR text response (or both).
- */
 const SubmitAssignmentModal = ({ assignment, onClose, onSuccess }) => {
-  const [textResponse, setTextResponse]   = useState('');
-  const [file, setFile]                   = useState(null);
-  const [submitting, setSubmitting]       = useState(false);
-  const [error, setError]                 = useState('');
+  const [textResponse, setTextResponse] = useState('');
+  const [file, setFile]                 = useState(null);
+  const [submitting, setSubmitting]     = useState(false);
+  const [error, setError]               = useState('');
+
+  const isOverdue = new Date() > new Date(assignment.due_date);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,14 +24,12 @@ const SubmitAssignmentModal = ({ assignment, onClose, onSuccess }) => {
     }
     setError('');
     setSubmitting(true);
-
     try {
-      const formData = new FormData();
-      formData.append('assignmentId', assignment.id);
-      if (textResponse.trim()) formData.append('textResponse', textResponse.trim());
-      if (file)                formData.append('submissionFile', file);
-
-      await assignmentService.submitAssignment(formData);
+      const fd = new FormData();
+      fd.append('assignmentId', assignment.id);
+      if (textResponse.trim()) fd.append('textResponse', textResponse.trim());
+      if (file)                fd.append('submissionFile', file);
+      await assignmentService.submitAssignment(fd);
       onSuccess();
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Submission failed. Please try again.');
@@ -37,94 +38,112 @@ const SubmitAssignmentModal = ({ assignment, onClose, onSuccess }) => {
     }
   };
 
-  const isOverdue = new Date() > new Date(assignment.due_date);
-
   return (
-    <Modal title={`Submit: ${assignment.title}`} onClose={onClose} size="md">
-      <form onSubmit={handleSubmit} className="submit-form">
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Submit: {assignment.title}</DialogTitle>
+        </DialogHeader>
 
-        {isOverdue && (
-          <div className="submit-late-warning">
-            ⚠️ The due date has passed. This submission will be marked as <strong>Late</strong>.
-          </div>
-        )}
-
-        <div className="form-group">
-          <label className="form-label">Course</label>
-          <p className="form-static">{assignment.course_title}</p>
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Due Date</label>
-          <p className="form-static">
-            {new Date(assignment.due_date).toLocaleDateString('en-US', {
-              weekday: 'short', year: 'numeric', month: 'long', day: 'numeric',
-            })}
-          </p>
-        </div>
-
-        {assignment.description && (
-          <div className="form-group">
-            <label className="form-label">Instructions</label>
-            <p className="form-static form-static-muted">{assignment.description}</p>
-          </div>
-        )}
-
-        <div className="form-group">
-          <label className="form-label" htmlFor="textResponse">
-            Text Response <span className="form-optional">(optional if uploading a file)</span>
-          </label>
-          <textarea
-            id="textResponse"
-            className="form-textarea"
-            rows={5}
-            placeholder="Type your answer here…"
-            value={textResponse}
-            onChange={(e) => setTextResponse(e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">
-            Upload File <span className="form-optional">(PDF, DOCX, PPTX, JPG, PNG — max 20 MB)</span>
-          </label>
-          <div className="file-drop-zone">
-            <input
-              id="submissionFile"
-              type="file"
-              accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
-              style={{ display: 'none' }}
-              onChange={(e) => setFile(e.target.files[0] || null)}
-            />
-            <label htmlFor="submissionFile" className="file-drop-label">
-              {file ? (
-                <span className="file-chosen">📄 {file.name}</span>
-              ) : (
-                <span>Click to choose file or drag here</span>
-              )}
-            </label>
-            {file && (
-              <button
-                type="button"
-                className="file-clear-btn"
-                onClick={() => setFile(null)}
-              >
-                Remove
-              </button>
+        <DialogBody>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Late warning */}
+            {isOverdue && (
+              <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>The due date has passed. This will be marked as <strong>Late</strong>.</span>
+              </div>
             )}
-          </div>
-        </div>
 
-        {error && <p className="form-error">{error}</p>}
+            {/* Course / Due date info */}
+            <div className="grid grid-cols-2 gap-3 rounded-md bg-muted/40 px-4 py-3 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Course</p>
+                <p className="font-medium">{assignment.course_title}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Due Date</p>
+                <p className="font-medium">
+                  {new Date(assignment.due_date).toLocaleDateString('en-US', {
+                    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+                  })}
+                </p>
+              </div>
+            </div>
 
-        <div className="form-actions">
-          <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-submit-primary" disabled={submitting}>
-            {submitting ? 'Submitting…' : 'Submit Assignment'}
-          </button>
-        </div>
-      </form>
-    </Modal>
+            {/* Instructions */}
+            {assignment.description && (
+              <div className="rounded-md bg-muted/40 px-4 py-3 text-sm text-muted-foreground leading-relaxed">
+                {assignment.description}
+              </div>
+            )}
+
+            {/* Text response */}
+            <div className="space-y-1.5">
+              <Label htmlFor="textResponse">
+                Text Response{' '}
+                <span className="text-xs font-normal text-muted-foreground">(optional if uploading a file)</span>
+              </Label>
+              <Textarea
+                id="textResponse"
+                rows={5}
+                placeholder="Type your answer here…"
+                value={textResponse}
+                onChange={(e) => setTextResponse(e.target.value)}
+              />
+            </div>
+
+            {/* File upload */}
+            <div className="space-y-1.5">
+              <Label>
+                Upload File{' '}
+                <span className="text-xs font-normal text-muted-foreground">PDF, DOCX, PPTX — max 20 MB</span>
+              </Label>
+              <label
+                htmlFor="submissionFile"
+                className="flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-input bg-muted/30 px-4 py-3 text-sm text-muted-foreground hover:border-primary hover:bg-muted/50 transition-colors"
+              >
+                <Paperclip className="h-4 w-4 shrink-0" />
+                {file ? (
+                  <span className="font-medium text-foreground truncate">{file.name}</span>
+                ) : (
+                  <span>Click to choose file</span>
+                )}
+              </label>
+              <input
+                id="submissionFile"
+                type="file"
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
+                className="sr-only"
+                onChange={(e) => setFile(e.target.files[0] || null)}
+              />
+              {file && (
+                <button
+                  type="button"
+                  onClick={() => setFile(null)}
+                  className="flex items-center gap-1 text-xs text-destructive hover:underline"
+                >
+                  <X className="h-3 w-3" /> Remove file
+                </button>
+              )}
+            </div>
+
+            {/* Error */}
+            {error && (
+              <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+              <Button type="submit" variant="dark" disabled={submitting}>
+                {submitting ? 'Submitting…' : 'Submit Assignment'}
+              </Button>
+            </div>
+          </form>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 };
 
