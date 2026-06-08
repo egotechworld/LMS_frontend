@@ -11,25 +11,60 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const getDashboardPath = () => {
+    switch (user?.role) {
+      case 'admin': return '/admin/dashboard';
+      case 'instructor': return '/instructor/dashboard';
+      default: return '/student/dashboard';
+    }
+  };
+
+  const renderNavLinks = () => {
+    if (!isAuthenticated) return null;
+
+    switch (user?.role) {
+      case 'admin':
+        return (
+          <>
+            <li><Link to="/admin/dashboard">Dashboard</Link></li>
+            <li><Link to="/courses">Courses</Link></li>
+          </>
+        );
+      case 'instructor':
+        return (
+          <>
+            <li><Link to="/instructor/dashboard">Dashboard</Link></li>
+            <li><Link to="/courses">Courses</Link></li>
+          </>
+        );
+      default:
+        return (
+          <>
+            <li><Link to="/student/dashboard">Dashboard</Link></li>
+            <li><Link to="/courses">Courses</Link></li>
+            <li><Link to="/my-courses">My Courses</Link></li>
+          </>
+        );
+    }
+  };
+
   return (
     <nav className="navbar">
       <div className="container navbar-container">
-        <Link to="/" className="navbar-brand">
+        <Link to={isAuthenticated ? getDashboardPath() : '/'} className="navbar-brand">
           LMS Platform
         </Link>
         
         <ul className="navbar-menu">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/courses">Courses</Link></li>
-          {isAuthenticated && (
-            <li><Link to="/my-courses">My Courses</Link></li>
-          )}
+          {renderNavLinks()}
         </ul>
 
         <div className="navbar-actions">
           {isAuthenticated ? (
             <>
-              <span className="user-info">Hello, {user?.first_name}</span>
+              <span className="user-info">
+                {user?.first_name} ({user?.role})
+              </span>
               <button onClick={handleLogout} className="btn btn-secondary">
                 Logout
               </button>

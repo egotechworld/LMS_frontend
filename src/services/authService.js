@@ -14,5 +14,11 @@ export const authService = {
   async getCurrentUser() {
     const response = await api.get('/users/me');
     return response.data;
+  },
+
+  // Admin only - register instructor
+  async registerInstructor(userData) {
+    const response = await api.post('/users/register-instructor', userData);
+    return response.data;
   }
 };
