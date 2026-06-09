@@ -22,10 +22,22 @@ const Login = () => {
 
     try {
       const response = await authService.login(formData);
-      login(response.data.user, response.data.token);
-      navigate('/dashboard');
+      const { user, token } = response.data;
+      login(user, token);
+
+      // Redirect based on user role
+      switch (user.role) {
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        case 'instructor':
+          navigate('/instructor/dashboard');
+          break;
+        default:
+          navigate('/student/dashboard');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.error?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
@@ -35,27 +47,32 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h2>Login to LMS</h2>
+        <p className="auth-subtitle">Access your account</p>
         {error && <div className="error">{error}</div>}
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email</label>
             <input
               type="email"
+              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
+              placeholder="Enter your email"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
               type="password"
+              id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
+              placeholder="Enter your password"
               required
             />
           </div>
@@ -66,7 +83,7 @@ const Login = () => {
         </form>
 
         <p className="auth-link">
-          Don't have an account? <Link to="/register">Register here</Link>
+          Don't have an account? <Link to="/register">Register as Student</Link>
         </p>
       </div>
     </div>
