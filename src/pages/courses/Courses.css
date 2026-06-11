@@ -110,3 +110,28 @@
 .course-sidebar .btn {
   width: 100%;
 }
+
+.course-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.btn-track-progress {
+  background-color: #1e3a5f;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-track-progress:hover {
+  background-color: #16304f;
+}
