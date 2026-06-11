@@ -1,4 +1,5 @@
 import { useAuthStore } from '../store/authStore';
+import { Link } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -16,19 +17,16 @@ const Dashboard = () => {
             <p className="card-number">0</p>
             <p className="card-label">Enrolled Courses</p>
           </div>
-
           <div className="card dashboard-card">
             <h3>In Progress</h3>
             <p className="card-number">0</p>
             <p className="card-label">Active Learning</p>
           </div>
-
           <div className="card dashboard-card">
             <h3>Completed</h3>
             <p className="card-number">0</p>
             <p className="card-label">Finished Courses</p>
           </div>
-
           <div className="card dashboard-card">
             <h3>Certificates</h3>
             <p className="card-number">0</p>
@@ -41,6 +39,7 @@ const Dashboard = () => {
           <div className="quick-actions">
             <a href="/courses" className="btn btn-primary">Browse Courses</a>
             <a href="/my-courses" className="btn btn-secondary">View My Courses</a>
+            <Link to="/notifications" className="btn btn-notif-action">🔔 Notifications</Link>
           </div>
         </div>
       </div>

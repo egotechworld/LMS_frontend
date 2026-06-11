@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Courses from './pages/courses/Courses';
 import CourseDetail from './pages/courses/CourseDetail';
 import MyCourses from './pages/courses/MyCourses';
+import Notifications from './pages/notifications/Notifications';
+import NotificationDetail from './pages/notifications/NotificationDetail';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 
@@ -15,15 +17,19 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
+        <Route path="/login"    element={!isAuthenticated ? <Login />    : <Navigate to="/dashboard" />} />
         <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />} />
-        
+
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/dashboard" />} />
-          <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="courses" element={<Courses />} />
+          <Route path="dashboard"   element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="courses"     element={<Courses />} />
           <Route path="courses/:id" element={<CourseDetail />} />
-          <Route path="my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
+          <Route path="my-courses"  element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
+
+          {/* Notification routes */}
+          <Route path="notifications"     element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="notifications/:id" element={<ProtectedRoute><NotificationDetail /></ProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>
