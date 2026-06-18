@@ -41,7 +41,11 @@ const Dashboard = () => {
           <div className="quick-actions">
             <a href="/courses" className="btn btn-primary">Browse Courses</a>
             <a href="/my-courses" className="btn btn-secondary">View My Courses</a>
-            <Link to="/notifications" className="btn btn-notif-action">🔔 Notifications</Link>
+            {user?.role === 'instructor' && (
+              <Link to="/instructor/progress" className="btn btn-track">
+                📊 Track Student Progress
+              </Link>
+            )}
           </div>
         </div>
       </div>

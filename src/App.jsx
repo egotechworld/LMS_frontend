@@ -8,8 +8,9 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 import Courses from './pages/courses/Courses';
 import CourseDetail from './pages/courses/CourseDetail';
 import MyCourses from './pages/courses/MyCourses';
-import Notifications from './pages/notifications/Notifications';
-import NotificationDetail from './pages/notifications/NotificationDetail';
+import CourseProgress from './pages/progress/CourseProgress';
+import InstructorProgress from './pages/progress/InstructorProgress';
+import InstructorProgressOverview from './pages/progress/InstructorProgressOverview';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 
@@ -66,11 +67,10 @@ function App() {
           {/* Common protected routes */}
           <Route path="courses" element={<Courses />} />
           <Route path="courses/:id" element={<CourseDetail />} />
-          <Route path="my-courses"  element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
-
-          {/* Notification routes */}
-          <Route path="notifications"     element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-          <Route path="notifications/:id" element={<ProtectedRoute><NotificationDetail /></ProtectedRoute>} />
+          <Route path="my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
+          <Route path="progress/:courseId" element={<ProtectedRoute><CourseProgress /></ProtectedRoute>} />
+          <Route path="instructor/progress/:courseId" element={<ProtectedRoute><InstructorProgress /></ProtectedRoute>} />
+          <Route path="instructor/progress" element={<ProtectedRoute><InstructorProgressOverview /></ProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>
