@@ -8,7 +8,8 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 import Courses from './pages/courses/Courses';
 import CourseDetail from './pages/courses/CourseDetail';
 import MyCourses from './pages/courses/MyCourses';
-import Assignments from './pages/assignments/Assignments';
+import Notifications from './pages/notifications/Notifications';
+import NotificationDetail from './pages/notifications/NotificationDetail';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 
@@ -31,12 +32,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={!isAuthenticated ? <Login /> : getDashboardRedirect()} />
-        <Route path="/register" element={!isAuthenticated ? <Register /> : getDashboardRedirect()} />
+        <Route path="/login"    element={!isAuthenticated ? <Login />    : <Navigate to="/dashboard" />} />
+        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />} />
 
-        {/* Protected routes with Layout */}
         <Route path="/" element={<Layout />}>
+          <Route index element={<Navigate to="/dashboard" />} />
+          <Route path="dashboard"   element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="courses"     element={<Courses />} />
           <Route index element={getDashboardRedirect()} />
           <Route path="dashboard" element={getDashboardRedirect()} />
 
@@ -64,11 +66,11 @@ function App() {
           {/* Common protected routes */}
           <Route path="courses" element={<Courses />} />
           <Route path="courses/:id" element={<CourseDetail />} />
-          <Route path="my-courses" element={
-            <ProtectedRoute allowedRoles={['student']}>
-              <MyCourses />
-            </ProtectedRoute>
-          } />
+          <Route path="my-courses"  element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
+
+          {/* Notification routes */}
+          <Route path="notifications"     element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="notifications/:id" element={<ProtectedRoute><NotificationDetail /></ProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>
