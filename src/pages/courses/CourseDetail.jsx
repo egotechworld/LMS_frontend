@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { courseService } from '../../services/courseService';
 import { enrollmentService } from '../../services/enrollmentService';
+import { paymentService } from '../../services/paymentService';
 import { useAuthStore } from '../../store/authStore';
 import './Courses.css';
 
@@ -30,13 +31,29 @@ const CourseDetail = () => {
   const handleEnroll = async () => {
     try {
       setEnrolling(true);
-      await enrollmentService.enrollInCourse(id);
-      alert('Enrolled successfully!');
+      if (course.is_free) {
+        await enrollmentService.enrollInCourse(id);
+        alert('Enrolled successfully!');
+      } else {
+        const session = await paymentService.createCheckoutSession(id);
+        if (session.data && session.data.url) {
+          window.location.href = session.data.url;
+        } else {
+          alert('Failed to initiate payment');
+        }
+      }
     } catch (error) {
-      alert(error.response?.data?.message || 'Enrollment failed');
+      alert(error.response?.data?.message || 'Enrollment/Payment failed');
     } finally {
       setEnrolling(false);
     }
+  };
+
+  const formatPrice = (priceInCents, currency = 'usd') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+    }).format(priceInCents / 100);
   };
 
   if (loading) return <div className="loading">Loading course details...</div>;
@@ -67,17 +84,24 @@ const CourseDetail = () => {
 
           <div className="course-sidebar">
             <div className="card">
-              <h3>Enroll Now</h3>
+              <h3>Pricing</h3>
+              <p className="text-2xl font-bold mb-4">
+                {course.is_free ? 'Free' : formatPrice(course.price, course.currency)}
+              </p>
               {isAuthenticated ? (
                 <button 
                   onClick={handleEnroll} 
-                  className="btn btn-primary"
+                  className="btn btn-primary w-full"
                   disabled={enrolling}
                 >
-                  {enrolling ? 'Enrolling...' : 'Enroll in Course'}
+                  {enrolling 
+                    ? 'Processing...' 
+                    : course.is_free 
+                      ? 'Enroll Now' 
+                      : `Buy Now - ${formatPrice(course.price, course.currency)}`}
                 </button>
               ) : (
-                <p>Please login to enroll</p>
+                <p>Please login to enroll or buy this course.</p>
               )}
             </div>
           </div>

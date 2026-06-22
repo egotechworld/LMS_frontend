@@ -40,6 +40,7 @@ const StudentDashboard = () => {
           <h2>Quick Actions</h2>
           <div className="quick-actions">
             <a href="/courses" className="btn btn-primary">Browse Courses</a>
+            <a href="/student/purchases" className="btn btn-secondary">Purchase History</a>
             <a href="/my-courses" className="btn btn-secondary">View My Courses</a>
           </div>
         </div>

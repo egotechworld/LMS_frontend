@@ -5,12 +5,17 @@ import Register from './pages/auth/Register';
 import StudentDashboard from './pages/dashboards/StudentDashboard';
 import InstructorDashboard from './pages/dashboards/InstructorDashboard';
 import AdminDashboard from './pages/dashboards/AdminDashboard';
+import AdminFinanceDashboard from './pages/dashboards/AdminFinanceDashboard';
 import Courses from './pages/courses/Courses';
+import ManageCourses from './pages/courses/ManageCourses';
 import CourseDetail from './pages/courses/CourseDetail';
 import MyCourses from './pages/courses/MyCourses';
 import CourseProgress from './pages/progress/CourseProgress';
 import InstructorProgress from './pages/progress/InstructorProgress';
 import InstructorProgressOverview from './pages/progress/InstructorProgressOverview';
+import PaymentSuccess from './pages/payment/PaymentSuccess';
+import PaymentCancel from './pages/payment/PaymentCancel';
+import StudentPurchaseHistory from './pages/payment/StudentPurchaseHistory';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 
@@ -37,9 +42,6 @@ function App() {
         <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />} />
 
         <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/dashboard" />} />
-          <Route path="dashboard"   element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="courses"     element={<Courses />} />
           <Route index element={getDashboardRedirect()} />
           <Route path="dashboard" element={getDashboardRedirect()} />
 
@@ -56,11 +58,21 @@ function App() {
               <InstructorDashboard />
             </ProtectedRoute>
           } />
+          <Route path="instructor/courses" element={
+            <ProtectedRoute allowedRoles={['instructor']}>
+              <ManageCourses />
+            </ProtectedRoute>
+          } />
 
           {/* Admin routes */}
           <Route path="admin/dashboard" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="admin/finance" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminFinanceDashboard />
             </ProtectedRoute>
           } />
 
@@ -71,6 +83,11 @@ function App() {
           <Route path="progress/:courseId" element={<ProtectedRoute><CourseProgress /></ProtectedRoute>} />
           <Route path="instructor/progress/:courseId" element={<ProtectedRoute><InstructorProgress /></ProtectedRoute>} />
           <Route path="instructor/progress" element={<ProtectedRoute><InstructorProgressOverview /></ProtectedRoute>} />
+          
+          {/* Payment Routes */}
+          <Route path="payment/success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+          <Route path="payment/cancel" element={<ProtectedRoute><PaymentCancel /></ProtectedRoute>} />
+          <Route path="student/purchases" element={<ProtectedRoute allowedRoles={['student']}><StudentPurchaseHistory /></ProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>

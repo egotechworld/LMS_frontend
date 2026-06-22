@@ -22,7 +22,7 @@ const Login = () => {
 
     try {
       const response = await authService.login(formData);
-      const { user, token } = response.data;
+      const { user, token } = response;
       login(user, token);
 
       // Redirect based on user role

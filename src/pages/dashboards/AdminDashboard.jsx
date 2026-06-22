@@ -154,7 +154,8 @@ const AdminDashboard = () => {
           <h2>Quick Actions</h2>
           <div className="quick-actions">
             <a href="/admin/users" className="btn btn-primary">Manage Users</a>
-            <a href="/admin/courses" className="btn btn-secondary">Manage Courses</a>
+            <a href="/admin/courses" className="btn btn-secondary">Review Courses</a>
+            <a href="/admin/finance" className="btn btn-primary" style={{backgroundColor: '#10b981', borderColor: '#10b981'}}>Finance Dashboard</a>
           </div>
         </div>
       </div>
