@@ -15,6 +15,7 @@ import InstructorProgress from './pages/progress/InstructorProgress';
 import InstructorProgressOverview from './pages/progress/InstructorProgressOverview';
 import PaymentSuccess from './pages/payment/PaymentSuccess';
 import PaymentCancel from './pages/payment/PaymentCancel';
+import DemoCheckout from './pages/payment/DemoCheckout';
 import StudentPurchaseHistory from './pages/payment/StudentPurchaseHistory';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
@@ -75,6 +76,11 @@ function App() {
               <AdminFinanceDashboard />
             </ProtectedRoute>
           } />
+          <Route path="admin/courses" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ManageCourses />
+            </ProtectedRoute>
+          } />
 
           {/* Common protected routes */}
           <Route path="courses" element={<Courses />} />
@@ -85,6 +91,7 @@ function App() {
           <Route path="instructor/progress" element={<ProtectedRoute><InstructorProgressOverview /></ProtectedRoute>} />
           
           {/* Payment Routes */}
+          <Route path="checkout/:courseId" element={<ProtectedRoute allowedRoles={['student']}><DemoCheckout /></ProtectedRoute>} />
           <Route path="payment/success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
           <Route path="payment/cancel" element={<ProtectedRoute><PaymentCancel /></ProtectedRoute>} />
           <Route path="student/purchases" element={<ProtectedRoute allowedRoles={['student']}><StudentPurchaseHistory /></ProtectedRoute>} />

@@ -8,7 +8,7 @@ export const authService = {
 
   async login(credentials) {
     const response = await api.post('/users/login', credentials);
-    return response.data;
+    return response.data.data;
   },
 
   async getCurrentUser() {

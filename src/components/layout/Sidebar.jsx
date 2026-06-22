@@ -9,11 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 const NAV_ITEMS = [
-  { to: '/dashboard',     label: 'Dashboard',      Icon: LayoutDashboard },
-  { to: '/courses',       label: 'Browse Courses', Icon: BookOpen        },
-  { to: '/my-courses',    label: 'My Courses',     Icon: BookMarked      },
-  { to: '/assignments',   label: 'Assignments',    Icon: ClipboardList   },
-  { to: '/notifications', label: 'Notifications',  Icon: Bell            },
+  { to: '/dashboard',     label: 'Dashboard',      Icon: LayoutDashboard, roles: ['student', 'instructor', 'admin'] },
+  { to: '/courses',       label: 'Browse Courses', Icon: BookOpen,        roles: ['student', 'instructor', 'admin'] },
+  { to: '/my-courses',    label: 'My Courses',     Icon: BookMarked,      roles: ['student'] },
+  { to: '/assignments',   label: 'Assignments',    Icon: ClipboardList,   roles: ['student'] },
+  { to: '/notifications', label: 'Notifications',  Icon: Bell,            roles: ['student', 'instructor', 'admin'] },
+  { to: '/instructor/courses', label: 'Manage Courses', Icon: BookOpen,   roles: ['instructor'] },
+  { to: '/admin/finance', label: 'Finance Dashboard', Icon: ClipboardList,roles: ['admin'] },
+  { to: '/admin/courses', label: 'Add Course',     Icon: BookOpen,        roles: ['admin'] },
 ];
 
 const ROLES = ['student', 'instructor', 'admin'];
@@ -59,7 +62,7 @@ const Sidebar = () => {
 
       {/* Nav */}
       <nav className="flex-1 px-2.5 py-3 flex flex-col gap-0.5">
-        {NAV_ITEMS.map(({ to, label, Icon }) => (
+        {NAV_ITEMS.filter(item => !item.roles || item.roles.includes(user?.role)).map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}

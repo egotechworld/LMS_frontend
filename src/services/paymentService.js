@@ -6,6 +6,11 @@ export const paymentService = {
     return response.data;
   },
 
+  async demoCheckout(courseId) {
+    const response = await api.post('/payment/demo-checkout', { courseId });
+    return response.data;
+  },
+
   async getPurchaseHistory() {
     const response = await api.get('/payment/history');
     return response.data;

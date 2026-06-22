@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { enrollmentService } from '../../services/enrollmentService';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '../../lib/utils';
 import './Courses.css';
 
 const MyCourses = () => {
@@ -37,7 +38,7 @@ const MyCourses = () => {
         <div className="courses-grid">
           {enrollments.map((enrollment) => (
             <div key={enrollment.id} className="course-card">
-              <img src={enrollment.thumbnail || '/placeholder.jpg'} alt={enrollment.title} />
+              <img src={getImageUrl(enrollment.thumbnail)} alt={enrollment.title} />
               <div className="course-card-content">
                 <h3>{enrollment.title}</h3>
                 <p className="course-instructor">

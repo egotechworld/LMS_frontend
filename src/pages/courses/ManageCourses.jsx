@@ -7,7 +7,8 @@ const ManageCourses = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     title: '', description: '', category: 'Programming',
-    is_free: true, price: 0, currency: 'usd'
+    level: 'beginner', duration: '',
+    is_free: true, price: 0, currency: 'usd', thumbnail: null
   });
 
   useEffect(() => {
@@ -25,12 +26,33 @@ const ManageCourses = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData({ ...formData, thumbnail: e.target.files[0] });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const dataToSubmit = { ...formData };
-      if (dataToSubmit.is_free) dataToSubmit.price = 0;
-      else dataToSubmit.price = Math.round(parseFloat(dataToSubmit.price) * 100); // convert dollars to cents
+      const dataToSubmit = new FormData();
+      dataToSubmit.append('title', formData.title);
+      dataToSubmit.append('description', formData.description);
+      dataToSubmit.append('category', formData.category);
+      dataToSubmit.append('level', formData.level);
+      dataToSubmit.append('duration', formData.duration || 0);
+      dataToSubmit.append('is_free', formData.is_free);
+      
+      if (!formData.is_free) {
+        dataToSubmit.append('price', Math.round(parseFloat(formData.price) * 100));
+        dataToSubmit.append('currency', formData.currency);
+      } else {
+        dataToSubmit.append('price', 0);
+      }
+
+      if (formData.thumbnail) {
+        dataToSubmit.append('thumbnail', formData.thumbnail);
+      }
 
       await courseService.createCourse(dataToSubmit);
       alert('Course created successfully');
@@ -58,11 +80,28 @@ const ManageCourses = () => {
               value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
             <textarea className="px-3 py-2 border rounded bg-input" placeholder="Description" required
               value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
-            <select className="px-3 py-2 border rounded bg-input" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
-              <option value="Programming">Programming</option>
-              <option value="Design">Design</option>
-              <option value="Business">Business</option>
-            </select>
+            <div className="grid grid-cols-2 gap-4">
+              <select className="px-3 py-2 border rounded bg-input" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                <option value="Programming">Programming</option>
+                <option value="Design">Design</option>
+                <option value="Business">Business</option>
+                <option value="Technology">Technology</option>
+              </select>
+              
+              <select className="px-3 py-2 border rounded bg-input" value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})}>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+
+            <input type="number" className="px-3 py-2 border rounded bg-input" placeholder="Duration (in minutes)" required
+              value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} />
+
+            <div className="flex flex-col">
+              <label className="text-sm mb-1 text-muted-foreground">Course Thumbnail (Optional)</label>
+              <input type="file" accept="image/*" onChange={handleFileChange} className="px-3 py-2 border rounded bg-input" />
+            </div>
             
             <div className="flex items-center gap-2">
               <input type="checkbox" id="is_free" checked={formData.is_free}

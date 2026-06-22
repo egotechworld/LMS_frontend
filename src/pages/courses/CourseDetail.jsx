@@ -4,6 +4,7 @@ import { courseService } from '../../services/courseService';
 import { enrollmentService } from '../../services/enrollmentService';
 import { paymentService } from '../../services/paymentService';
 import { useAuthStore } from '../../store/authStore';
+import { getImageUrl } from '../../lib/utils';
 import './Courses.css';
 
 const CourseDetail = () => {
@@ -35,12 +36,8 @@ const CourseDetail = () => {
         await enrollmentService.enrollInCourse(id);
         alert('Enrolled successfully!');
       } else {
-        const session = await paymentService.createCheckoutSession(id);
-        if (session.data && session.data.url) {
-          window.location.href = session.data.url;
-        } else {
-          alert('Failed to initiate payment');
-        }
+        // Route to demo checkout instead of Stripe
+        navigate(`/checkout/${id}`);
       }
     } catch (error) {
       alert(error.response?.data?.message || 'Enrollment/Payment failed');
@@ -71,7 +68,7 @@ const CourseDetail = () => {
 
         <div className="course-content">
           <div className="course-main">
-            <img src={course.thumbnail || '/placeholder.jpg'} alt={course.title} />
+            <img src={getImageUrl(course.thumbnail)} alt={course.title} />
             <h3>About This Course</h3>
             <p>{course.description}</p>
             

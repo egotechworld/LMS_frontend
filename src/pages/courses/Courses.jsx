@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { courseService } from '../../services/courseService';
+import { getImageUrl } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 import './Courses.css';
 
@@ -50,7 +51,7 @@ const Courses = () => {
         ) : (
           courses.map((course) => (
             <div key={course.id} className="course-card">
-              <img src={course.thumbnail || '/placeholder.jpg'} alt={course.title} />
+              <img src={getImageUrl(course.thumbnail)} alt={course.title} />
               <div className="course-card-content">
                 <h3>{course.title}</h3>
                 <p className="course-instructor">By {course.first_name} {course.last_name}</p>
