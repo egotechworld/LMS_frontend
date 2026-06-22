@@ -8,6 +8,8 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 import AdminFinanceDashboard from './pages/dashboards/AdminFinanceDashboard';
 import Courses from './pages/courses/Courses';
 import ManageCourses from './pages/courses/ManageCourses';
+import ManageLessons from './pages/courses/ManageLessons';
+import CoursePlayer from './pages/courses/CoursePlayer';
 import CourseDetail from './pages/courses/CourseDetail';
 import MyCourses from './pages/courses/MyCourses';
 import CourseProgress from './pages/progress/CourseProgress';
@@ -52,6 +54,16 @@ function App() {
               <StudentDashboard />
             </ProtectedRoute>
           } />
+          <Route path="student/progress" element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <CourseProgress />
+            </ProtectedRoute>
+          } />
+          <Route path="student/courses/:courseId/play" element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <CoursePlayer />
+            </ProtectedRoute>
+          } />
 
           {/* Instructor routes */}
           <Route path="instructor/dashboard" element={
@@ -60,8 +72,13 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="instructor/courses" element={
-            <ProtectedRoute allowedRoles={['instructor']}>
+            <ProtectedRoute allowedRoles={['instructor', 'admin']}>
               <ManageCourses />
+            </ProtectedRoute>
+          } />
+          <Route path="instructor/courses/:courseId/lessons" element={
+            <ProtectedRoute allowedRoles={['instructor', 'admin']}>
+              <ManageLessons />
             </ProtectedRoute>
           } />
 

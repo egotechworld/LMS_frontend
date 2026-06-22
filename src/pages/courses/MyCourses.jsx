@@ -49,7 +49,7 @@ const MyCourses = () => {
                   <span>Progress: {enrollment.progress}%</span>
                 </div>
                 <div className="course-card-actions">
-                  <Link to={`/courses/${enrollment.course_id}`} className="btn btn-primary">
+                  <Link to={`/student/courses/${enrollment.course_id}/play`} className="btn btn-primary">
                     Continue Learning
                   </Link>
                   <Link to={`/progress/${enrollment.course_id}`} className="btn btn-track-progress">

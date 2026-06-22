@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { courseService } from '../../services/courseService';
 
 const ManageCourses = () => {
@@ -127,10 +128,18 @@ const ManageCourses = () => {
       {loading ? <p>Loading...</p> : (
         <div className="grid grid-cols-1 gap-4">
           {courses.map(course => (
-            <div key={course.id} className="bg-card p-4 rounded-xl border border-border flex justify-between items-center">
+            <div key={course.id} className="bg-[hsl(224,44%,14%)] p-5 rounded-xl border border-white/10 flex justify-between items-center text-white">
               <div>
-                <h3 className="font-semibold">{course.title}</h3>
-                <p className="text-sm text-muted-foreground">{course.is_free ? 'Free' : `$${(course.price / 100).toFixed(2)}`}</p>
+                <h3 className="font-semibold text-lg mb-1">{course.title}</h3>
+                <p className="text-sm text-white/50">{course.is_free ? 'Free' : `$${(course.price / 100).toFixed(2)}`}</p>
+              </div>
+              <div className="flex gap-3">
+                <Link to={`/instructor/courses/${course.id}/lessons`} className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 px-4 py-2 rounded transition-colors text-sm font-medium">
+                  Manage Lessons
+                </Link>
+                <button className="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded transition-colors text-sm">
+                  Edit Course
+                </button>
               </div>
             </div>
           ))}
