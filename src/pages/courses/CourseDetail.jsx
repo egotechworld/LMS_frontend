@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { courseService } from '../../services/courseService';
 import { enrollmentService } from '../../services/enrollmentService';
 import { paymentService } from '../../services/paymentService';
@@ -9,6 +9,7 @@ import './Courses.css';
 
 const CourseDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);

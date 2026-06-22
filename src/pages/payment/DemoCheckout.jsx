@@ -4,7 +4,6 @@ import { courseService } from '../../services/courseService';
 import { paymentService } from '../../services/paymentService';
 import { CreditCard, ShieldCheck } from 'lucide-react';
 import { getImageUrl } from '../../lib/utils';
-import './Payment.css';
 
 const DemoCheckout = () => {
   const { courseId } = useParams();
