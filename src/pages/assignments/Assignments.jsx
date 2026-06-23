@@ -3,6 +3,7 @@ import { Plus, BookOpen } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { assignmentService } from '@/services/assignmentService';
 import { enrollmentService } from '@/services/enrollmentService';
+import { courseService } from '@/services/courseService';
 import { Button } from '@/components/ui/button';
 import {
   Select, SelectTrigger, SelectValue,
@@ -43,11 +44,11 @@ const Assignments = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const enrRes  = await enrollmentService.getMyEnrollments();
-      const enrList = enrRes.data || [];
-      setEnrollments(enrList);
-
       if (isStudent) {
+        const enrRes  = await enrollmentService.getMyEnrollments();
+        const enrList = enrRes.data || [];
+        setEnrollments(enrList);
+
         const all = [];
         await Promise.all(
           enrList.map(async (enr) => {
@@ -82,6 +83,9 @@ const Assignments = () => {
         });
 
         setAssignments(enriched);
+      } else if (isInstructor) {
+        const cRes = await courseService.getAllCourses();
+        setEnrollments(cRes.data || []);
       }
     } catch (err) {
       console.error('Failed to load assignments:', err);

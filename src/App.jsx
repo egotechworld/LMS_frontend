@@ -9,9 +9,13 @@ import AdminFinanceDashboard from './pages/dashboards/AdminFinanceDashboard';
 import Courses from './pages/courses/Courses';
 import ManageCourses from './pages/courses/ManageCourses';
 import ManageLessons from './pages/courses/ManageLessons';
+import ManageQuiz from './pages/courses/ManageQuiz';
 import CoursePlayer from './pages/courses/CoursePlayer';
 import CourseDetail from './pages/courses/CourseDetail';
 import MyCourses from './pages/courses/MyCourses';
+import TakeQuiz from './pages/courses/TakeQuiz';
+import Assignments from './pages/assignments/Assignments';
+import Quizzes from './pages/quizzes/Quizzes';
 import CourseProgress from './pages/progress/CourseProgress';
 import InstructorProgress from './pages/progress/InstructorProgress';
 import InstructorProgressOverview from './pages/progress/InstructorProgressOverview';
@@ -21,9 +25,20 @@ import DemoCheckout from './pages/payment/DemoCheckout';
 import StudentPurchaseHistory from './pages/payment/StudentPurchaseHistory';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
+import { useThemeStore } from './store/themeStore';
+import { useEffect } from 'react';
 
 function App() {
   const { isAuthenticated, user } = useAuthStore();
+  const { theme } = useThemeStore();
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   // Redirect /dashboard to role-specific dashboard
   const getDashboardRedirect = () => {
@@ -44,6 +59,18 @@ function App() {
         <Route path="/login"    element={!isAuthenticated ? <Login />    : <Navigate to="/dashboard" />} />
         <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />} />
 
+        {/* Fullscreen Player Route */}
+        <Route path="/student/courses/:courseId/play" element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <CoursePlayer />
+          </ProtectedRoute>
+        } />
+        <Route path="/student/courses/:courseId/lessons/:lessonId/quiz" element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <TakeQuiz />
+          </ProtectedRoute>
+        } />
+
         <Route path="/" element={<Layout />}>
           <Route index element={getDashboardRedirect()} />
           <Route path="dashboard" element={getDashboardRedirect()} />
@@ -57,11 +84,6 @@ function App() {
           <Route path="student/progress" element={
             <ProtectedRoute allowedRoles={['student']}>
               <CourseProgress />
-            </ProtectedRoute>
-          } />
-          <Route path="student/courses/:courseId/play" element={
-            <ProtectedRoute allowedRoles={['student']}>
-              <CoursePlayer />
             </ProtectedRoute>
           } />
 
@@ -79,6 +101,11 @@ function App() {
           <Route path="instructor/courses/:courseId/lessons" element={
             <ProtectedRoute allowedRoles={['instructor', 'admin']}>
               <ManageLessons />
+            </ProtectedRoute>
+          } />
+          <Route path="instructor/courses/:courseId/lessons/:lessonId/quiz" element={
+            <ProtectedRoute allowedRoles={['instructor', 'admin']}>
+              <ManageQuiz />
             </ProtectedRoute>
           } />
 
@@ -106,6 +133,8 @@ function App() {
           <Route path="progress/:courseId" element={<ProtectedRoute><CourseProgress /></ProtectedRoute>} />
           <Route path="instructor/progress/:courseId" element={<ProtectedRoute><InstructorProgress /></ProtectedRoute>} />
           <Route path="instructor/progress" element={<ProtectedRoute><InstructorProgressOverview /></ProtectedRoute>} />
+          <Route path="assignments" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><Assignments /></ProtectedRoute>} />
+          <Route path="quizzes" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><Quizzes /></ProtectedRoute>} />
           
           {/* Payment Routes */}
           <Route path="checkout/:courseId" element={<ProtectedRoute allowedRoles={['student']}><DemoCheckout /></ProtectedRoute>} />
