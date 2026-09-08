@@ -2,6 +2,7 @@ import { Outlet, useLocation, NavLink } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/themeStore';
 import Sidebar from './Sidebar';
+import MobileNavigation from './MobileNavigation';
 import { Sun, Moon } from 'lucide-react';
 
 const LABELS = {
@@ -54,7 +55,7 @@ const Layout = () => {
 
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         {isAuthenticated && (
-          <header className="h-14 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[hsl(224,44%,12%)] flex items-center justify-between px-7 shrink-0 text-slate-900 dark:text-white transition-colors duration-300">
+          <header className="h-14 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[hsl(224,44%,12%)] flex items-center justify-between px-4 md:px-7 shrink-0 text-slate-900 dark:text-white transition-colors duration-300">
             <Breadcrumbs />
             <button 
               onClick={toggleTheme}
@@ -65,10 +66,11 @@ const Layout = () => {
             </button>
           </header>
         )}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           <Outlet />
         </main>
       </div>
+      {isAuthenticated && <MobileNavigation />}
     </div>
   );
 };

@@ -5,11 +5,12 @@ import { courseService } from '../../services/courseService';
 const ManageCourses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [formData, setFormData] = useState({
     title: '', description: '', category: 'Programming',
     level: 'beginner', duration: '',
-    is_free: true, price: 0, currency: 'usd', thumbnail: null
+    is_free: true, price: 0, currency: 'usd', status: 'draft', thumbnail: null
   });
 
   useEffect(() => {
@@ -18,7 +19,7 @@ const ManageCourses = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await courseService.getAllCourses();
+      const res = await courseService.getAllCourses({ scope: 'mine' });
       setCourses(res.data || []);
     } catch (error) {
       console.error(error);
@@ -38,7 +39,7 @@ const ManageCourses = () => {
     setFormData({
       title: '', description: '', category: 'Programming',
       level: 'beginner', duration: '',
-      is_free: true, price: 0, currency: 'usd', thumbnail: null
+      is_free: true, price: 0, currency: 'usd', status: 'draft', thumbnail: null
     });
     setIsCreating(true);
   };
@@ -54,6 +55,7 @@ const ManageCourses = () => {
       is_free: course.is_free,
       price: course.price ? (course.price / 100).toFixed(2) : 0,
       currency: course.currency || 'usd',
+      status: course.status || 'draft',
       thumbnail: null
     });
     setIsCreating(true);
@@ -81,6 +83,7 @@ const ManageCourses = () => {
       dataToSubmit.append('level', formData.level);
       dataToSubmit.append('duration', formData.duration || 0);
       dataToSubmit.append('is_free', formData.is_free);
+      dataToSubmit.append('status', formData.status);
       
       if (!formData.is_free) {
         dataToSubmit.append('price', Math.round(parseFloat(formData.price) * 100));
@@ -101,6 +104,7 @@ const ManageCourses = () => {
         updateData.level = formData.level;
         updateData.duration = formData.duration || 0;
         updateData.is_free = formData.is_free;
+        updateData.status = formData.status;
         if (!formData.is_free) {
           updateData.price = Math.round(parseFloat(formData.price) * 100);
           updateData.currency = formData.currency;
@@ -155,6 +159,14 @@ const ManageCourses = () => {
 
             <input type="number" className="px-3 py-2 border border-slate-300 dark:border-white/10 rounded bg-transparent text-slate-900 dark:text-white" placeholder="Duration (in minutes)" required
               value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} />
+
+            <div className="flex flex-col">
+              <label htmlFor="course-status" className="text-sm mb-1 text-slate-600 dark:text-white/70">Publishing status</label>
+              <select id="course-status" className="px-3 py-2 border border-slate-300 dark:border-white/10 rounded bg-white dark:bg-[hsl(224,44%,12%)]" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </div>
 
             <div className="flex flex-col">
               <label className="text-sm mb-1 text-slate-600 dark:text-white/70">Course Thumbnail (Optional)</label>

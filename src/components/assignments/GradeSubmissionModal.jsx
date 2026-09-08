@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge }    from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { assignmentService } from '@/services/assignmentService';
+import { getApiOrigin } from '@/lib/utils';
 
 const GradeSubmissionModal = ({ submission, maxScore, onClose, onSuccess }) => {
   const [mark, setMark]         = useState(submission.mark ?? '');
@@ -36,7 +37,7 @@ const GradeSubmissionModal = ({ submission, maxScore, onClose, onSuccess }) => {
     }
   };
 
-  const apiBase = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const apiBase = getApiOrigin();
 
   return (
     <Dialog open onOpenChange={onClose}>

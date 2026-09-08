@@ -1,37 +1,25 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
-export const useAuthStore = create(
-  persist(
-    (set) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
+// Authentication is restored from the HttpOnly cookie via /users/me.
+// No token or authentication state is persisted in browser storage.
+export const useAuthStore = create((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isInitialized: false,
 
-      login: (userData, token) => {
-        set({
-          user: userData,
-          token: token,
-          isAuthenticated: true
-        });
-      },
+  setSession: (user) => set({
+    user,
+    isAuthenticated: Boolean(user),
+    isInitialized: true,
+  }),
 
-      logout: () => {
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false
-        });
-      },
+  clearSession: () => set({
+    user: null,
+    isAuthenticated: false,
+    isInitialized: true,
+  }),
 
-      updateUser: (userData) => {
-        set((state) => ({
-          user: { ...state.user, ...userData }
-        }));
-      }
-    }),
-    {
-      name: 'auth-storage'
-    }
-  )
-);
+  updateUser: (userData) => set((state) => ({
+    user: state.user ? { ...state.user, ...userData } : null,
+  })),
+}));

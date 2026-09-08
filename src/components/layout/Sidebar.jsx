@@ -4,11 +4,12 @@ import {
   ClipboardList, Bell, LogOut,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { authService } from '@/services/authService';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { to: '/dashboard',     label: 'Dashboard',      Icon: LayoutDashboard, roles: ['student', 'instructor', 'admin'] },
   { to: '/courses',       label: 'Browse Courses', Icon: BookOpen,        roles: ['student', 'instructor', 'admin'] },
   { to: '/my-courses',    label: 'My Courses',     Icon: BookMarked,      roles: ['student'] },
@@ -23,7 +24,7 @@ const NAV_ITEMS = [
 const ROLES = ['student', 'instructor', 'admin'];
 
 const Sidebar = () => {
-  const { user, logout } = useAuthStore();
+  const { user, clearSession } = useAuthStore();
   const navigate = useNavigate();
 
   const initials = user
@@ -31,7 +32,7 @@ const Sidebar = () => {
     : '?';
 
   return (
-    <aside className="flex h-screen w-[220px] min-w-[220px] flex-col bg-white border-r border-slate-200 dark:bg-[hsl(224,44%,14%)] dark:border-none sticky top-0 overflow-y-auto transition-colors duration-300">
+    <aside className="hidden md:flex h-screen w-[220px] min-w-[220px] flex-col bg-white border-r border-slate-200 dark:bg-[hsl(224,44%,14%)] dark:border-none sticky top-0 overflow-y-auto transition-colors duration-300">
 
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-4 py-5 border-b border-slate-200 dark:border-white/10">
@@ -99,7 +100,14 @@ const Sidebar = () => {
           variant="ghost"
           size="icon"
           className="h-7 w-7 text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/10 shrink-0"
-          onClick={() => { logout(); navigate('/login'); }}
+          onClick={async () => {
+            try {
+              await authService.logout();
+            } finally {
+              clearSession();
+              navigate('/login');
+            }
+          }}
           title="Logout"
         >
           <LogOut className="h-3.5 w-3.5" />

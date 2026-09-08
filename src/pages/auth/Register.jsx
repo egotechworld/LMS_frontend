@@ -15,7 +15,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { setSession } = useAuthStore();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -35,7 +35,7 @@ const Register = () => {
     try {
       const { confirmPassword, ...submitData } = formData;
       const response = await authService.register(submitData);
-      login(response.user, response.token);
+      setSession(response.user);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');

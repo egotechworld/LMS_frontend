@@ -2,11 +2,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { notificationService } from '../../services/notificationService';
+import { authService } from '../../services/authService';
 import '../../pages/notifications/Notifications.css';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, clearSession } = useAuthStore();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -25,9 +26,13 @@ const Navbar = () => {
     } catch {}
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } finally {
+      clearSession();
+      navigate('/login');
+    }
   };
 
   const getDashboardPath = () => {

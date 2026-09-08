@@ -23,13 +23,16 @@ import PaymentSuccess from './pages/payment/PaymentSuccess';
 import PaymentCancel from './pages/payment/PaymentCancel';
 import DemoCheckout from './pages/payment/DemoCheckout';
 import StudentPurchaseHistory from './pages/payment/StudentPurchaseHistory';
+import Notifications from './pages/notifications/Notifications';
+import NotificationDetail from './pages/notifications/NotificationDetail';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
 import { useEffect } from 'react';
+import { authService } from './services/authService';
 
 function App() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, isInitialized, user, setSession, clearSession } = useAuthStore();
   const { theme } = useThemeStore();
 
   useEffect(() => {
@@ -39,6 +42,17 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  useEffect(() => {
+    if (isInitialized) return;
+    authService.getCurrentUser()
+      .then(({ user: currentUser }) => setSession(currentUser))
+      .catch(() => clearSession());
+  }, [isInitialized, setSession, clearSession]);
+
+  if (!isInitialized) {
+    return <div className="min-h-screen grid place-items-center bg-slate-50" role="status">Loading LMS…</div>;
+  }
 
   // Redirect /dashboard to role-specific dashboard
   const getDashboardRedirect = () => {
@@ -135,6 +149,8 @@ function App() {
           <Route path="instructor/progress" element={<ProtectedRoute><InstructorProgressOverview /></ProtectedRoute>} />
           <Route path="assignments" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><Assignments /></ProtectedRoute>} />
           <Route path="quizzes" element={<ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}><Quizzes /></ProtectedRoute>} />
+          <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="notifications/:id" element={<ProtectedRoute><NotificationDetail /></ProtectedRoute>} />
           
           {/* Payment Routes */}
           <Route path="checkout/:courseId" element={<ProtectedRoute allowedRoles={['student']}><DemoCheckout /></ProtectedRoute>} />

@@ -2,7 +2,11 @@ import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, isInitialized, user } = useAuthStore();
+
+  if (!isInitialized) {
+    return <div className="min-h-[40vh] grid place-items-center" role="status">Restoring session…</div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
